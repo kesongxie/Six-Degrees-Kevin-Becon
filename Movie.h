@@ -36,7 +36,9 @@ struct Movie{
     /** convert a given title and year of a movie into a string representation
      *  to be used as the key for a given movie
      */
-    static string getMapKeyFromTitleAndYear(string title, int year);
+    static string getMapKeyFromTitleAndYear(string title, int year){
+        return title + to_string(year);
+    }
 };
 
 #endif /* Movie_ph*/
