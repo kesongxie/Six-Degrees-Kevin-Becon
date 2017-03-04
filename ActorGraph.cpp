@@ -67,7 +67,7 @@ int ActorGraph::buildGraph(int argc, char** argv){
         bool have_header = false;
         
         // keep reading lines until the end of file is reached
-        outputFile << "(actor)--[movie#@year]-->(actor)--...:" << endl;
+        outputFile << "(actor)--[movie#@year]-->(actor)--..." << endl;
         
         while (readPairFile) {
             string s;
