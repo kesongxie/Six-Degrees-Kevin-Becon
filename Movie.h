@@ -15,35 +15,28 @@
 using namespace std;
 
 struct Movie{
+    
+    /** the title of the movie
+     */
     string title;
+    
+    /** the year of the movie
+     */
     int year;
     
-    Movie(string t, int y): title(t), year(y){}
     
+    /** contains a list of actor names in the this movie
+     */
     unordered_set<string> act_in;
     
-    bool operator ==(const Movie &m) const{
-        return title == m.title && year == m.year;
-    }
-    
-    static string getMapKeyFromTitleAndYear(string title, int year){
-        return title + to_string(year);
-    }
+    /** constructor
+     */
+    Movie(string t, int y): title(t), year(y){}
+
+    /** convert a given title and year of a movie into a string representation
+     *  to be used as the key for a given movie
+     */
+    static string getMapKeyFromTitleAndYear(string title, int year);
 };
-
-
-
-namespace std
-{
-    template <>
-    struct hash<Movie>
-    {
-        size_t operator()(const Movie& movie) const
-        {
-            return hash<std::string>{}(movie.title + to_string(movie.year));
-        }
-    };
-}
-
 
 #endif /* Movie_ph*/

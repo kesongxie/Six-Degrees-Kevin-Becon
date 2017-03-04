@@ -19,8 +19,112 @@
 
 using namespace std;
 
-ActorGraph::ActorGraph(void) {}
 
+/** build the graph
+ *  @param argc : the number of command line arguments
+ *  @param argv : the command line arguments
+ */
+int ActorGraph::buildGraph(int argc, char** argv){
+    
+    if(argc < 5){
+        cerr << "Usage: ./pathfinder movie_casts.tsv u test_pairs.tsv out_paths_unweighted.tsv" << endl;
+        return -1;
+    }
+    
+    //get hhe cats file name
+    string mov_cast_filename = *(++argv);
+    if(mov_cast_filename.length() < 1){
+        return -1;
+    }
+    
+    //get the weighted or unweighted option
+    string weightedString = *(++argv);
+    if(weightedString != "w" && weightedString != "u"){
+        cerr << "the option should be 'w' (weighted) or 'u'(unweighted) only" << endl;
+        return -1;
+    }
+    
+    bool weighted = (weightedString == "w");
+    
+    //get the test pair filename
+    string test_pair_filename = *(++argv);
+    
+    //get the output file name
+    string output_filename = *(++argv);
+    
+    //load actors from the cast and build the graph
+    loadFromFile(mov_cast_filename, weighted);
+    
+    ifstream readPairFile(test_pair_filename);
+    ofstream outputFile(output_filename);
+    
+    if(!outputFile.is_open()){
+        cerr << "Can't write to file: " << output_filename << endl;
+        return -1;
+    }
+    
+    if(readPairFile.is_open()){
+        bool have_header = false;
+        
+        // keep reading lines until the end of file is reached
+        outputFile << "(actor)--[movie#@year]-->(actor)--...:" << endl;
+        
+        while (readPairFile) {
+            string s;
+            
+            // get the next line
+            if (!getline( readPairFile, s )) break;
+            
+            if (!have_header) {
+                // skip the header
+                have_header = true;
+                continue;
+            }
+            
+            istringstream ss( s );
+            vector <string> record;
+            
+            while (ss) {
+                string next;
+                
+                // get the next string before hitting a tab character and put it in 'next'
+                if (!getline( ss, next, '\t' )) break;
+                
+                record.push_back( next );
+            }
+            
+            if (record.size() != 2) {
+                // we should have exactly 3 columns
+                continue;
+            }
+            
+            string first_actor(record[0]);
+            string second_actor(record[1]);
+            shorestPath(first_actor, second_actor, outputFile);
+        }
+        
+        
+        cout << "Actors nodes: " << vertices.size() << endl;
+        cout << "Movies: " << movies.size() << endl;
+        cout << "Edges: " << numberOfEdges << endl;
+
+        
+        
+        
+    }else{
+        cerr << "Can't open and read from file: " << test_pair_filename << endl;
+    }
+    
+    return 0;
+}
+
+
+
+/**  Load the graph from a tab-delimited file of actor->movie relationships.
+ *  @param in_filename :  input filename
+ *  @param use_weighted_edges : if true, compute edge weights as 1 + (2015 - movie_year), otherwise all edge weights will be 1
+ *  @return true if file was loaded sucessfully, false otherwise
+ */
 bool ActorGraph::loadFromFile(string in_filename, bool use_weighted_edges) {
     // Initialize the file stream
     ifstream infile(in_filename);
@@ -74,6 +178,11 @@ bool ActorGraph::loadFromFile(string in_filename, bool use_weighted_edges) {
 }
 
 
+/** add the actor to the graph
+ *  @param actor_name : the name of the actor
+ *  @param movie_title : the title of the movie
+ *  @param movie_year : the year of the movie
+ */
 void ActorGraph::addActor(string actor_name, string movie_title, int movie_year){
     //check whether the given actor with the name existed in the graph or not
     unordered_map<string, ActorNode*>::iterator v_itr = vertices.find(actor_name);
@@ -91,7 +200,7 @@ void ActorGraph::addActor(string actor_name, string movie_title, int movie_year)
         //The movie exsited already
         //check whether the actor is already in the movie or not to
         //prevent duplicate inserting the same actor with the same movie
-
+        
         Movie* mov = mov_itr->second;
         
         unordered_set<string>& act_in_mov = mov->act_in;
@@ -104,18 +213,10 @@ void ActorGraph::addActor(string actor_name, string movie_title, int movie_year)
                 
                 ActorEdge* edgeB = new ActorEdge(vertices[actor_name] ,vertices[*act_itr], mov);
                 vertices[actor_name]->adj.push_back(edgeB);
+                numberOfEdges += 2;
             }
             
             act_in_mov.insert(actor_name);
-
-//            //print out the current connection of the graph
-//            for(auto vertex_itr = vertices.begin(); vertex_itr != vertices.end(); ++vertex_itr){
-//                vector<ActorEdge*>& adj = vertex_itr->second->adj;
-//                for(auto i = adj.begin(); i != adj.end(); ++i){
-//                    cout << vertex_itr->first << " | "<< (*i)->movie->title << " " << (*i)->movie->year << " | " << (*i)->dest->name << endl;
-//                }
-//            }
-            
         }
     }else{
         //The movie is not in the graph yet
@@ -129,141 +230,69 @@ void ActorGraph::addActor(string actor_name, string movie_title, int movie_year)
     }
 }
 
-int ActorGraph::buildGraph(int argc, char** argv){
-    
-    if(argc < 5){
-        cerr << "Usage: ./pathfinder movie_casts.tsv u test_pairs.tsv out_paths_unweighted.tsv" << endl;
-        return -1;
-    }
-    
-    //get hhe cats file name
-    string mov_cast_filename = *(++argv);
-    if(mov_cast_filename.length() < 1){
-        return -1;
-    }
-    
-    //get the weighted or unweighted option
-    string weightedString = *(++argv);
-    if(weightedString != "w" && weightedString != "u"){
-        cerr << "the option should be 'w' (weighted) or 'u'(unweighted) only" << endl;
-        return -1;
-    }
-    
-    bool weighted = (weightedString == "w");
-    
-    //get the test pair filename
-    string test_pair_filename = *(++argv);
-    
-    //get the output file name
-    string output_filename = *(++argv);
-    
-    loadFromFile(mov_cast_filename, weighted);
-    
-    string actor1 = "BEN";
-    string actor2 = "MATT";
-    
-    ifstream readPairFile(test_pair_filename);
-    ofstream outputFile(output_filename);
-    
-    if(!outputFile.is_open()){
-        cerr << "Can't write to file: " << output_filename << endl;
-        return -1;
-    }
-    
-    if(readPairFile.is_open()){
-        bool have_header = false;
-        
-        // keep reading lines until the end of file is reached
-        outputFile << "(actor)--[movie#@year]-->(actor)--...:" << endl;
 
-        while (readPairFile) {
-            string s;
-            
-            // get the next line
-            if (!getline( readPairFile, s )) break;
-            
-            if (!have_header) {
-                // skip the header
-                have_header = true;
-                continue;
-            }
-            
-            istringstream ss( s );
-            vector <string> record;
-            
-            while (ss) {
-                string next;
-                
-                // get the next string before hitting a tab character and put it in 'next'
-                if (!getline( ss, next, '\t' )) break;
-                
-                record.push_back( next );
-            }
-            
-            if (record.size() != 2) {
-                // we should have exactly 3 columns
-                continue;
-            }
-            
-            string first_actor(record[0]);
-            string second_actor(record[1]);
-            shorestPath(first_actor, second_actor, outputFile);
-        }
-        
-    }else{
-        cerr << "Can't open and read from file: " << test_pair_filename << endl;
-    }
-    
-    return 0;
-}
-
-
+/** genearte the shortest path
+ *  @param from_actor : the start actor vertex
+ *  @param to_actor : the destination actor vertex
+ *  @param outfile : the outpunt file for storing the shortest path
+ */
 void ActorGraph::shorestPath(string from_actor, string to_actor, ofstream &outfile){
     auto itr = vertices.find(from_actor);
     if(itr != vertices.end()){
+        unordered_set<string> visited;
+        unordered_map<string, ActorEdge*> prevEdges;
+
         //found the from actor
         queue<ActorNode*> q;
         q.push(itr->second);
+        visited.insert(from_actor); //visisted
+
         bool found = false;
         
         ActorNode* actor = NULL;
         while(!q.empty() && !found){
             actor = q.front();
             q.pop();
-            actor->visited = true;
             if(actor->name != to_actor){
                 for(auto itr = actor->adj.begin(); itr != actor->adj.end(); ++itr){
-                    (*itr)->source->nextEdge = *itr;
-                    if((*itr)->dest->name == to_actor){
-                        //found it
-                        actor = (*itr)->dest;
-                        found = true;
-                        break;
-                    }else{
-                        if(!(*itr)->dest->visited){
+                    if(visited.find((*itr)->dest->name) == visited.end()){
+                        prevEdges[(*itr)->dest->name] = *itr;
+                        if((*itr)->dest->name == to_actor){
+                            //found it
+                            actor = (*itr)->dest;
+                            found = true;
+                            break;
+                        }else{
                             q.push((*itr)->dest);
+                            visited.insert((*itr)->dest->name); //visisted
                         }
                     }
                 }
             }else{
                 found = true;
+                break;
             }
         }
         
-        ActorNode* act = itr->second;
-        
-        if(found && act != NULL){
-            if(act->nextEdge != NULL){
-                while(act->nextEdge != NULL){
-                    outfile << "(" << act->name << ")";
-                    outfile << "--[" << act->nextEdge->movie->title << "#@" << act->nextEdge->movie->year << "]";
-                    outfile << "-->(" << act->nextEdge->dest->name << ")";
-                    act = act->nextEdge->dest;
-                }
-            }else{
-                outfile << act->name;
+        vector<ActorEdge*> paths;
+        if(found && actor != NULL){
+            while(prevEdges[actor->name] != NULL){
+                paths.push_back(prevEdges[actor->name]);
+                actor = prevEdges[actor->name]->source;
             }
-            outfile << endl;
+            
+            int count = 0;
+            for(auto edge_itr = paths.rbegin(); edge_itr != paths.rend(); ++edge_itr){
+                outfile << "(" << (*edge_itr)->source->name << ")";
+                outfile << "--[" << (*edge_itr)->movie->title << "#@" <<(*edge_itr)->movie->year << "]";
+                if(++count == paths.size()){
+                    outfile << "-->(" << (*edge_itr)->dest->name << ")";
+                }else{
+                    outfile << "-->";
+                }
+            }
+            outfile<<endl;
+            
         }
     }
 }

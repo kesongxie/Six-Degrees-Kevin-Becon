@@ -22,52 +22,57 @@ class ActorGraph {
 protected:
     /** The connections between two actors and edges representation in the graph
      * the key is the name representation for the actor/actress
+     * the value is the pointer for the ActorNode object
      */
     unordered_map<string, ActorNode*> vertices;
     
     /** The movie that in the graph
-     *  The key is the movie object
-     *  The value is an unordered_set of a actor's name
+     *  The key is the movie as a string representation
+     *  The value is the a pointer for a Movie object
      */
     unordered_map<string, Movie*> movies;
+    
+    /** number of edges
+     */
+    long long numberOfEdges = 0;
     
     
 public:
     
-    ActorGraph(void);
+    /** constructor
+     */
+    ActorGraph(void){};
+    
+    /** build the graph
+     *  @param argc : the number of command line arguments
+     *  @param argv : the command line arguments
+     */
+    int buildGraph(int argc, char** argv);
 
-    // Maybe add some more methods here
-  
-    /** You can modify this method definition as you wish
-     *
-     * Load the graph from a tab-delimited file of actor->movie relationships.
-     *
-     * in_filename - input filename
-     * use_weighted_edges - if true, compute edge weights as 1 + (2015 - movie_year), otherwise all edge weights will be 1
-     *
-     * return true if file was loaded sucessfully, false otherwise
+    /**  Load the graph from a tab-delimited file of actor->movie relationships.
+     *  @param in_filename :  input filename
+     *  @param use_weighted_edges : if true, compute edge weights as 1 + (2015 - movie_year), otherwise all edge weights will be 1
+     *  @return true if file was loaded sucessfully, false otherwise
      */
     bool loadFromFile(string in_filename, bool use_weighted_edges);
     
     
     /** add the actor to the graph
+     *  @param actor_name : the name of the actor
+     *  @param movie_title : the title of the movie
+     *  @param movie_year : the year of the movie
      */
     void addActor(string actor_name, string movie_title, int movie_year);
     
     
-    /** build the graph
-     */
-
-    int buildGraph(int argc, char** argv);
     
-    
-    /** output the shortest path
+    /** genearte the shortest path
+     *  @param from_actor : the start actor vertex
+     *  @param to_actor : the destination actor vertex
+     *  @param outfile : the outpunt file for storing the shortest path
      */
     void shorestPath(string from_actor, string to_actor, ofstream &outfile);
     
-    
-    
-  
 };
 
 

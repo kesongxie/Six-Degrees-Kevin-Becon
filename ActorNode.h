@@ -19,35 +19,20 @@ using namespace std;
 /** The Node structure that defines an actor or actress.
  */
 struct ActorNode{
-    //the name of the actor/actress
+    /** the name of the actor/actress
+     */
     string name;
     
+    /** the adjacent edges for connected actors with this current actor
+     */
     vector<ActorEdge*> adj;
     
-    ActorEdge* nextEdge;
-    
-    bool visited;
-    
-    ActorNode(string n) : name(n){
-        visited = false;
-        nextEdge = NULL;
-    }
-    
-    
-    bool operator ==(const ActorNode &other) const;
+    /** constructor
+     */
+    ActorNode(string n) : name(n){}
 };
 
-namespace std
-{
-    template <>
-    struct hash<ActorNode>
-    {
-        size_t operator()(const ActorNode& actor) const
-        {
-            return hash<std::string>{}(actor.name);
-        }
-    };
-}
+
 
 
 #endif /* ActorNode_h */

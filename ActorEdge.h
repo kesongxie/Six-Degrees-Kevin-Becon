@@ -16,9 +16,20 @@
 struct ActorNode;
 
 struct ActorEdge{
+    /** the source actor of this edge
+     */
     ActorNode* source;
+    
+    /** the destination actor of this edge
+     */
     ActorNode* dest;
+    
+    /** the movie that connects the source actor and the destination actor
+     */
     Movie* movie;
+    
+    /** constructor
+     */
     ActorEdge(ActorNode* s, ActorNode* d, Movie* m) : source(s), dest(d), movie(m){};
 };
 
