@@ -1,12 +1,10 @@
-#ifndef UTIL_H
-#define UTIL_H
+
+
+#ifndef Timer_H
+#define Timer_H
 
 #include <chrono>
-#include <vector>
-#include <string>
-#include <iostream>
 
-using std::istream;
 
 class Timer{
 private:
@@ -29,4 +27,4 @@ public:
     
 };
 
-#endif //UTIL_H
+#endif //Timer_H

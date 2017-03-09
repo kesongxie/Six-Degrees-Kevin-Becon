@@ -1,13 +1,5 @@
-#include <iostream>
-#include <sstream>
 #include "util.h"
 
-using std::istream;
-using std::endl;
-using std::cout;
-using std::istringstream;
-using std::string;
-using std::vector;
 
 /*
  * Starts the timer. Saves the current time.

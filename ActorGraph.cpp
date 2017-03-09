@@ -16,7 +16,6 @@
 #include "ActorGraph.h"
 #include "ActorEdge.h"
 #include "MinCostEdgeWrapper.h"
-#include "util.h"
 
 using namespace std;
 
@@ -67,11 +66,7 @@ int ActorGraph::buildGraph(int argc, char** argv){
     
     if(readPairFile.is_open()){
         bool have_header = false;
-        
-        Timer timer;
-        
-        
-        timer.begin_timer();
+
         // keep reading lines until the end of file is reached
         outputFile << "(actor)--[movie#@year]-->(actor)--..." << endl;
         
@@ -116,11 +111,7 @@ int ActorGraph::buildGraph(int argc, char** argv){
         cout << "Actors nodes: " << vertices.size() << endl;
         cout << "Movies: " << movies.size() << endl;
         cout << "Edges: " << numberOfEdges << endl;
-        
-        long long timeTook = timer.end_timer();
-        
-        cout << "Program run for: " <<  timeTook << endl;
-        
+                
         
     }else{
         cerr << "Can't open and read from file: " << test_pair_filename << endl;
