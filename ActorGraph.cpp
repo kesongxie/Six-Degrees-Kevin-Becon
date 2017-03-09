@@ -64,6 +64,11 @@ int ActorGraph::buildGraph(int argc, char** argv){
         return -1;
     }
     
+    cout << "Actors nodes: " << vertices.size() << endl;
+    cout << "Movies: " << movies.size() << endl;
+    cout << "Edges: " << numberOfEdges << endl;
+    cout << "Finding shortest path... " << endl;
+
     if(readPairFile.is_open()){
         bool have_header = false;
 
@@ -107,12 +112,7 @@ int ActorGraph::buildGraph(int argc, char** argv){
                 shorestPath(first_actor, second_actor, outputFile);
             }
         }
-        
-        cout << "Actors nodes: " << vertices.size() << endl;
-        cout << "Movies: " << movies.size() << endl;
-        cout << "Edges: " << numberOfEdges << endl;
-                
-        
+        cout << "Done!" << endl;
     }else{
         cerr << "Can't open and read from file: " << test_pair_filename << endl;
     }
@@ -326,8 +326,6 @@ void ActorGraph::shorestPathWeighted(string from_actor, string to_actor, ofstrea
         //for a destination
         unordered_map<string, pair<int, ActorEdge*>> min_cost_map;
         
-        // <string, ActorEdge*>, and the ActorEdge is the minimum cost updated
-        // every time
         for(auto adj_itr = itr->second->adj.begin(); adj_itr != itr->second->adj.end(); ++adj_itr){
             min_cost_map[adj_itr->first] = pair<int, ActorEdge*>(adj_itr->second->weight, adj_itr->second);
             MinCostEdgeWrapper min_cost_wrapper(adj_itr->first, adj_itr->second->weight, adj_itr->second);
@@ -382,14 +380,7 @@ void ActorGraph::shorestPathWeighted(string from_actor, string to_actor, ofstrea
                 }
             }
             outfile<<endl;
-
         }
-        
-        
-        
-        
-        
-   
     }
 }
 
