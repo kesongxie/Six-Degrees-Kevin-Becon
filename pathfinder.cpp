@@ -15,6 +15,4 @@ int main(int argc, char** argv){
     
     ActorGraph graph;
     return graph.buildGraph(argc, argv);
-    
-    return 0;
 }

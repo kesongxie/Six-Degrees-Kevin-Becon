@@ -12,7 +12,6 @@
 #include <iostream>
 #include "Movie.h"
 
-
 struct ActorNode;
 
 struct ActorEdge{
@@ -28,9 +27,21 @@ struct ActorEdge{
      */
     Movie* movie;
     
+    
+    /** the weight of the edge
+     */
+    int weight;
+    
     /** constructor
      */
-    ActorEdge(ActorNode* s, ActorNode* d, Movie* m) : source(s), dest(d), movie(m){};
+    ActorEdge(ActorNode* s, ActorNode* d, Movie* m) : source(s), dest(d), movie(m){
+        weight = 1 + (2015 - movie->year);
+    };
 };
 
+
+
 #endif /* ActorEdge_h */
+
+
+

@@ -15,7 +15,8 @@
 #include <queue>
 #include "ActorGraph.h"
 #include "ActorEdge.h"
-
+#include "MinCostEdgeWrapper.h"
+#include "util.h"
 
 using namespace std;
 
@@ -44,6 +45,7 @@ int ActorGraph::buildGraph(int argc, char** argv){
         return -1;
     }
     
+    
     bool weighted = (weightedString == "w");
     
     //get the test pair filename
@@ -66,6 +68,10 @@ int ActorGraph::buildGraph(int argc, char** argv){
     if(readPairFile.is_open()){
         bool have_header = false;
         
+        Timer timer;
+        
+        
+        timer.begin_timer();
         // keep reading lines until the end of file is reached
         outputFile << "(actor)--[movie#@year]-->(actor)--..." << endl;
         
@@ -100,15 +106,20 @@ int ActorGraph::buildGraph(int argc, char** argv){
             
             string first_actor(record[0]);
             string second_actor(record[1]);
-            shorestPath(first_actor, second_actor, outputFile);
+            if(weighted){
+                shorestPathWeighted(first_actor, second_actor, outputFile);
+            }else{
+                shorestPath(first_actor, second_actor, outputFile);
+            }
         }
-        
         
         cout << "Actors nodes: " << vertices.size() << endl;
         cout << "Movies: " << movies.size() << endl;
         cout << "Edges: " << numberOfEdges << endl;
-
         
+        long long timeTook = timer.end_timer();
+        
+        cout << "Program run for: " <<  timeTook << endl;
         
         
     }else{
@@ -209,10 +220,11 @@ void ActorGraph::addActor(string actor_name, string movie_title, int movie_year)
             for(auto act_itr = act_in_mov.begin(); act_itr != act_in_mov.end(); ++act_itr){
                 //create an undirected edges between the two actors
                 ActorEdge* edgeA = new ActorEdge(vertices[*act_itr], vertices[actor_name], mov);
-                vertices[*act_itr]->adj.push_back(edgeA);
+                vertices[*act_itr]->adj[edgeA->dest->name] = edgeA;
                 
                 ActorEdge* edgeB = new ActorEdge(vertices[actor_name] ,vertices[*act_itr], mov);
-                vertices[actor_name]->adj.push_back(edgeB);
+                vertices[actor_name]->adj[edgeB->dest->name] = edgeB;
+ 
                 numberOfEdges += 2;
             }
             
@@ -231,7 +243,8 @@ void ActorGraph::addActor(string actor_name, string movie_title, int movie_year)
 }
 
 
-/** genearte the shortest path
+
+/** genearte the shortest path for unweighted edges
  *  @param from_actor : the start actor vertex
  *  @param to_actor : the destination actor vertex
  *  @param outfile : the outpunt file for storing the shortest path
@@ -241,12 +254,12 @@ void ActorGraph::shorestPath(string from_actor, string to_actor, ofstream &outfi
     if(itr != vertices.end()){
         unordered_set<string> visited;
         unordered_map<string, ActorEdge*> prevEdges;
-
+        
         //found the from actor
         queue<ActorNode*> q;
         q.push(itr->second);
         visited.insert(from_actor); //visisted
-
+        
         bool found = false;
         
         ActorNode* actor = NULL;
@@ -255,16 +268,16 @@ void ActorGraph::shorestPath(string from_actor, string to_actor, ofstream &outfi
             q.pop();
             if(actor->name != to_actor){
                 for(auto itr = actor->adj.begin(); itr != actor->adj.end(); ++itr){
-                    if(visited.find((*itr)->dest->name) == visited.end()){
-                        prevEdges[(*itr)->dest->name] = *itr;
-                        if((*itr)->dest->name == to_actor){
+                    if(visited.find(itr->first) == visited.end()){
+                        prevEdges[itr->first] = itr->second;
+                        if(itr->first == to_actor){
                             //found it
-                            actor = (*itr)->dest;
+                            actor = itr->second->dest;
                             found = true;
                             break;
                         }else{
-                            q.push((*itr)->dest);
-                            visited.insert((*itr)->dest->name); //visisted
+                            q.push(itr->second->dest);
+                            visited.insert(itr->first); //visisted
                         }
                     }
                 }
@@ -294,6 +307,98 @@ void ActorGraph::shorestPath(string from_actor, string to_actor, ofstream &outfi
             outfile<<endl;
             
         }
+    }
+}
+
+
+
+/** genearte the shortest path for weighted edges
+ *  @param from_actor : the start actor vertex
+ *  @param to_actor : the destination actor vertex
+ *  @param outfile : the outpunt file for storing the shortest path
+ */
+void ActorGraph::shorestPathWeighted(string from_actor, string to_actor, ofstream &outfile){
+    auto itr = vertices.find(from_actor);
+    if(itr != vertices.end() && from_actor != to_actor){
+        //statring vertex found
+
+        //min_cost_priority_queue
+        priority_queue<MinCostEdgeWrapper, std::vector<MinCostEdgeWrapper>, MinCostEdgeWrapperComp> min_cost_queue;
+
+        //done status for a actor
+        unordered_map<string, bool> doneMap;
+        
+        //set the initial actor's to done
+        doneMap[from_actor] = true;
+        
+        //initialize for each vertex, the min_cost_map will always contain the most updated prev path
+        //for a destination
+        unordered_map<string, pair<int, ActorEdge*>> min_cost_map;
+        
+        // <string, ActorEdge*>, and the ActorEdge is the minimum cost updated
+        // every time
+        for(auto adj_itr = itr->second->adj.begin(); adj_itr != itr->second->adj.end(); ++adj_itr){
+            min_cost_map[adj_itr->first] = pair<int, ActorEdge*>(adj_itr->second->weight, adj_itr->second);
+            MinCostEdgeWrapper min_cost_wrapper(adj_itr->first, adj_itr->second->weight, adj_itr->second);
+            min_cost_queue.push(min_cost_wrapper);
+        }
+        
+      
+        bool found = false;
+        while(!min_cost_queue.empty()){
+            MinCostEdgeWrapper cur_wrapper = min_cost_queue.top();
+            min_cost_queue.pop();
+            if(!doneMap[cur_wrapper.actor_name]){
+                min_cost_map[cur_wrapper.actor_name] = pair<int, ActorEdge*>(cur_wrapper.min_weight, cur_wrapper.prev_edge);
+                doneMap[cur_wrapper.actor_name] = true;
+                if(doneMap[to_actor]){
+                    //we have constructed the path from the source actor to the destination actor
+                    //with the minimum cost
+                    found = true;
+                    break;
+                }else{
+                    for(auto& x : vertices[cur_wrapper.actor_name]->adj){
+                        if(!doneMap[x.first]){
+                            int intermediate_weight = cur_wrapper.min_weight + x.second->weight; //total using the optimized cur_edge
+                            if(min_cost_map.find(x.first) == min_cost_map.end() || min_cost_map[x.first].first > intermediate_weight){
+                                min_cost_map[x.first] = pair<int, ActorEdge*>(intermediate_weight, x.second );
+                                MinCostEdgeWrapper min_cost_wrapper(x.first, intermediate_weight, x.second);
+                                min_cost_queue.push(min_cost_wrapper);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        
+        if(found){
+            vector<ActorEdge*> paths;
+            ActorEdge* cur_edge = min_cost_map[to_actor].second;
+            while(cur_edge != NULL){
+                paths.push_back(cur_edge);
+                cur_edge = min_cost_map[cur_edge->source->name].second;
+            }
+            
+            int count = 0;
+            for(auto edge_itr = paths.rbegin(); edge_itr != paths.rend(); ++edge_itr){
+                outfile << "(" << (*edge_itr)->source->name << ")";
+                outfile << "--[" << (*edge_itr)->movie->title << "#@" <<(*edge_itr)->movie->year << "]";
+                if(++count == paths.size()){
+                    outfile << "-->(" << (*edge_itr)->dest->name << ")";
+                }else{
+                    outfile << "-->";
+                }
+            }
+            outfile<<endl;
+
+        }
+        
+        
+        
+        
+        
+   
     }
 }
 

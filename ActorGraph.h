@@ -18,6 +18,14 @@
 
 using namespace std;
 
+
+/** A 'function class' for use as the Compare class in a
+ *  priority_queue<HCNode*>.
+ *  For this to work, operator< must be defined to
+ *  do the right thing on HCNodes.
+ */
+
+
 class ActorGraph {
 protected:
     /** The connections between two actors and edges representation in the graph
@@ -72,6 +80,17 @@ public:
      *  @param outfile : the outpunt file for storing the shortest path
      */
     void shorestPath(string from_actor, string to_actor, ofstream &outfile);
+    
+    
+    
+    /** genearte the shortest path for weighted edges
+     *  @param from_actor : the start actor vertex
+     *  @param to_actor : the destination actor vertex
+     *  @param outfile : the outpunt file for storing the shortest path
+     */
+    void shorestPathWeighted(string from_actor, string to_actor, ofstream &outfile);
+
+    
     
 };
 

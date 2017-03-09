@@ -1,0 +1,5 @@
+(actor)--[movie#@year]-->(actor)--...
+(DAVIC, MACHINE)--[MOVIE10#@2000]-->(MICHAEL)
+(MICHAEL)--[MOVIE10#@2000]-->(DAVIC, MACHINE)
+(BEN)--[MOVIE5#@2015]-->(MEGHAN)
+(DAVIC, MACHINE)--[MOVIE2#@2013]-->(JOHN)

@@ -23,9 +23,11 @@ struct ActorNode{
      */
     string name;
     
-    /** the adjacent edges for connected actors with this current actor
+    
+    /**  the key is the destination actor name for the given edge, the adjacent edges 
+     *   for connected actors with this current actor
      */
-    vector<ActorEdge*> adj;
+    unordered_map<string,ActorEdge*> adj;
     
     /** constructor
      */
