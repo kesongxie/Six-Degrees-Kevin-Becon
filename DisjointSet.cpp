@@ -18,8 +18,10 @@
 #include "util.h"
 
 
-
-/** find actor connection using BFS
+/** find the connection using union find
+ *  @param in_filename : input filename
+ *  @param test_pair_filename : test pair filename
+ *  @param output_filename : output filename
  */
 void DisjointSet::actorConnectionUnionFind(string in_filename, string test_pair_filename, string output_filename){
     Timer timer;
@@ -34,8 +36,8 @@ void DisjointSet::actorConnectionUnionFind(string in_filename, string test_pair_
 }
 
 
-/** Load the graph from a tab-delimited file of actor->movie relationships.
- *  @param in_filename :  input filename
+/** read from the movie cast file and instantiate necessary member properties
+ *  @param in_filename : input filename
  */
 void DisjointSet::loadFromFileActorConnectionUnionFind(string in_filename) {
     // Initialize the file stream
@@ -103,6 +105,11 @@ void DisjointSet::loadFromFileActorConnectionUnionFind(string in_filename) {
 }
 
 
+
+/** search actor connection using union find/disjoint set
+ *  @param test_pair_filename : filename for test pair file
+ *  @param output_filename : filename for the output file
+ */
 int DisjointSet::searchActorConnectionsUnionFind(string test_pair_filename, string output_filename){
     ifstream readPairFile(test_pair_filename);
     ofstream outputFile(output_filename);
@@ -206,6 +213,10 @@ int DisjointSet::searchActorConnectionsUnionFind(string test_pair_filename, stri
 
 
 
+/** see whether two actor node connected or not
+ *  @param first : first actor
+ *  @param second : second actor
+ */
 bool DisjointSet::find(ActorNodeDJS* first, ActorNodeDJS* second){
     //path conpression
     return first->getSentinelNode().first == second->getSentinelNode().first;

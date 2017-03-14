@@ -19,7 +19,7 @@ class DisjointSet{
     
     
 private:
-       /** actor node, the key is the actor name, the value is the pointer to the actor node
+    /** actor node, the key is the actor name, the value is the pointer to the actor node
      */
     unordered_map<string, ActorNodeDJS*> actors;
     
@@ -43,12 +43,24 @@ private:
      */
     void loadFromFileActorConnectionUnionFind(string in_filename);
 
+    /** search actor connection using union find/disjoint set
+     *  @param test_pair_filename : filename for test pair file
+     *  @param output_filename : filename for the output file
+     */
     int searchActorConnectionsUnionFind(string test_pair_filename, string output_filename);
     
-    
+    /** see whether two actor node connected or not
+     *  @param first : first actor
+     *  @param second : second actor
+     */
     bool find(ActorNodeDJS* first, ActorNodeDJS* second);
     
 public:
+    /** find the connection using union find
+     *  @param in_filename : input filename
+     *  @param test_pair_filename : test pair filename
+     *  @param output_filename : output filename
+     */
     void actorConnectionUnionFind(string in_filename, string test_pair_filename, string output_filename);
 
     

@@ -16,6 +16,7 @@
 #include "ActorGraph.h"
 #include "ActorEdge.h"
 #include "MinCostEdgeWrapper.h"
+#include "util.h"
 
 using namespace std;
 
@@ -394,8 +395,12 @@ void ActorGraph::shorestPathWeighted(string from_actor, string to_actor, ofstrea
 /** find actor connection using BFS
  */
 void ActorGraph::actorConnectionBFS(string in_filename, string test_pair_filename, string output_filename){
+    Timer timer;
+    timer.begin_timer();
     loadFromFileActorConnectionBFS(in_filename);
     searchActorConnectionsBFS(test_pair_filename, output_filename);
+    long long timeCost = timer.end_timer();
+    cout << "Run time: " << timeCost << "s" << endl;
 }
 
 

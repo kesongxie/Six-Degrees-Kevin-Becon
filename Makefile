@@ -20,7 +20,7 @@ all: pathfinder actorconnections
 
 # include what ever source code *.h files pathfinder relies on (these are merely the ones that were used in the solution)
 
-pathfinder: ActorGraph.o
+pathfinder: ActorGraph.o util.o
 actorconnections: ActorGraph.o DisjointSet.o util.o
 
 

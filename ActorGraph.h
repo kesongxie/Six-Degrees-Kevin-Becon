@@ -101,17 +101,11 @@ public:
     void shorestPathWeighted(string from_actor, string to_actor, ofstream &outfile);
 
     
-    
-
-    
     /** find actor connection using BFS
      */
     void actorConnectionBFS(string in_filename, string test_pair_filename, string output_filename);
     
-    
     void loadFromFileActorConnectionBFS(string in_filename);
-    
-    
     
     
     /** search connection using BFS
