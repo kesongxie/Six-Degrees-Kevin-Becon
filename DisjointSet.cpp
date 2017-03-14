@@ -15,15 +15,22 @@
 #include <vector>
 #include <queue>
 #include "Movie.h"
+#include "util.h"
 
 
 
 /** find actor connection using BFS
  */
 void DisjointSet::actorConnectionUnionFind(string in_filename, string test_pair_filename, string output_filename){
+    Timer timer;
+    timer.begin_timer();
     
     loadFromFileActorConnectionUnionFind(in_filename);
     searchActorConnectionsUnionFind(test_pair_filename, output_filename);
+    
+    long long timeCost = timer.end_timer();
+    cout << "Run time: " << timeCost << "s" << endl;
+
 }
 
 
