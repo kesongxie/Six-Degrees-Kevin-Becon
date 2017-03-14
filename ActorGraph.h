@@ -11,6 +11,7 @@
 #define ACTORGRAPH_H
 
 #include <iostream>
+#include <map>
 #include <unordered_map>
 #include <unordered_set>
 #include <string>
@@ -44,6 +45,15 @@ protected:
      */
     long long numberOfEdges = 0;
     
+    
+    /** group the cast entry by year. 
+     *  the key is the year of the movie
+     *  the pair contains the pair which its first entry is the actor name, and the 
+     *  second entry is the title of the movie
+     */
+    map<int, vector<pair<string, string>>> yearGroup;
+    
+
     
 public:
     
@@ -89,6 +99,34 @@ public:
      *  @param outfile : the outpunt file for storing the shortest path
      */
     void shorestPathWeighted(string from_actor, string to_actor, ofstream &outfile);
+
+    
+    
+
+    
+    /** find actor connection using BFS
+     */
+    void actorConnectionBFS(string in_filename, string test_pair_filename, string output_filename);
+    
+    
+    void loadFromFileActorConnectionBFS(string in_filename);
+    
+    
+    
+    
+    /** search connection using BFS
+     */
+    int searchActorConnectionsBFS(string test_pair_filename, string output_filename);
+    
+    
+    /** BFS for searching eariest year connected between two actors
+     *  @param from_actor : the start actor vertex
+     *  @param to_actor : the destination actor vertex
+     *  @param year : the year the actors start being connected
+     */
+    bool isActorConnectedBFS(string from_actor, string to_actor, int year);
+
+    
 
     
     

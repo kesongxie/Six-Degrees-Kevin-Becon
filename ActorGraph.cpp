@@ -167,6 +167,7 @@ bool ActorGraph::loadFromFile(string in_filename, bool use_weighted_edges) {
         string movie_title(record[1]);
         int movie_year = stoi(record[2]);
         //add the actor and necessary relationship to the graph
+        
         addActor(actor_name, movie_title, movie_year);
     }
 
@@ -383,6 +384,205 @@ void ActorGraph::shorestPathWeighted(string from_actor, string to_actor, ofstrea
         }
     }
 }
+
+
+
+
+
+
+
+/** find actor connection using BFS
+ */
+void ActorGraph::actorConnectionBFS(string in_filename, string test_pair_filename, string output_filename){
+    loadFromFileActorConnectionBFS(in_filename);
+    searchActorConnectionsBFS(test_pair_filename, output_filename);
+}
+
+
+void ActorGraph::loadFromFileActorConnectionBFS(string in_filename) {
+    // Initialize the file stream
+    ifstream infile(in_filename);
+    
+    bool have_header = false;
+    // keep reading lines until the end of file is reached
+    while (infile) {
+        string s;
+        
+        // get the next line
+        if (!getline( infile, s )) break;
+        
+        if (!have_header) {
+            // skip the header
+            have_header = true;
+            continue;
+        }
+        
+        istringstream ss( s );
+        vector <string> record;
+        
+        while (ss) {
+            string next;
+            
+            // get the next string before hitting a tab character and put it in 'next'
+            if (!getline( ss, next, '\t' )) break;
+            
+            record.push_back( next );
+        }
+        
+        if (record.size() != 3) {
+            // we should have exactly 3 columns
+            continue;
+        }
+        
+        string actor_name(record[0]);
+        string movie_title(record[1]);
+        int movie_year = stoi(record[2]);
+        addActor(actor_name, movie_title, movie_year);
+        pair<string, string> entryPair(actor_name, movie_title);
+        if(yearGroup.find(movie_year) == yearGroup.end()){
+            //year not found
+            vector<pair<string, string>> groups;
+            groups.push_back(entryPair);
+            yearGroup[movie_year] = groups;
+        }else{
+            //year found
+            yearGroup[movie_year].push_back(entryPair);
+        }
+    }
+    
+    if (!infile.eof()) {
+        cerr << "Failed to read " << in_filename << "!\n";
+    }
+    infile.close();
+}
+
+
+
+/** search earies connection using BFS
+ */
+int ActorGraph::searchActorConnectionsBFS(string test_pair_filename, string output_filename){
+    
+    ifstream readPairFile(test_pair_filename);
+    ofstream outputFile(output_filename);
+    
+    if(!outputFile.is_open()){
+        cerr << "Can't write to file: " << output_filename << endl;
+        return -1;
+    }
+  
+    
+    if(readPairFile.is_open()){
+        bool have_header = false;
+        
+        // keep reading lines until the end of file is reached
+        outputFile << "Actor1\tActor2\tYear" << endl;
+        
+        while (readPairFile) {
+            string s;
+            
+            // get the next line
+            if (!getline( readPairFile, s )) break;
+            
+            if (!have_header) {
+                // skip the header
+                have_header = true;
+                continue;
+            }
+            
+            istringstream ss( s );
+            vector <string> record;
+            
+            while (ss) {
+                string next;
+                
+                // get the next string before hitting a tab character and put it in 'next'
+                if (!getline( ss, next, '\t' )) break;
+                
+                record.push_back( next );
+            }
+            
+            if (record.size() != 2) {
+                // we should have exactly 3 columns
+                continue;
+            }
+            
+
+            string first_actor(record[0]);
+            string second_actor(record[1]);
+            
+            bool found = false;
+            int year = 0;
+            for(auto& i: yearGroup){
+                if(isActorConnectedBFS(first_actor, second_actor, i.first)){
+                    found = true;
+                    year = i.first;
+                    break;
+                }
+            }
+            cout << "pair: " << first_actor << " -- " << second_actor << " done!" <<endl;
+            outputFile << first_actor << '\t' << second_actor << '\t';
+            if(found){
+                outputFile << year << endl;
+            }else{
+                outputFile << 9999 << endl;
+            }
+        }
+        cout << "Done!" << endl;
+    }else{
+        cerr << "Can't open and read from file: " << test_pair_filename << endl;
+    }
+    return 0;
+}
+
+
+
+
+/** BFS for searching eariest year connected between two actors
+ *  @param from_actor : the start actor vertex
+ *  @param to_actor : the destination actor vertex
+ */
+bool ActorGraph::isActorConnectedBFS(string from_actor, string to_actor, int year){
+    auto itr = vertices.find(from_actor);
+    if(itr != vertices.end()){
+        unordered_set<string> visited;
+        
+        //found the from actor
+        queue<ActorNode*> q;
+        q.push(itr->second);
+        visited.insert(from_actor); //visisted
+        
+        bool found = false;
+        
+        ActorNode* actor = NULL;
+        while(!q.empty() && !found){
+            actor = q.front();
+            q.pop();
+            if(actor->name != to_actor){
+                for(auto itr = actor->adj.begin(); itr != actor->adj.end(); ++itr){
+                    if(visited.find(itr->first) == visited.end() && itr->second->movie->year <= year ){
+                        if(itr->first == to_actor){
+                            //found it
+                            actor = itr->second->dest;
+                            return true;
+                        }else{
+                            q.push(itr->second->dest);
+                            visited.insert(itr->first); //visisted
+                        }
+                    }
+                }
+            }else{
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+
+
+
+
+
 
 
 
